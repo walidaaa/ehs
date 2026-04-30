@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import axios from 'axios';
 import authRoutes from './routes/auth';
 import crudRoutes from './routes/crud';
 import uploadRoutes from './routes/upload';
@@ -14,95 +13,108 @@ import { authenticateToken } from './middleware/auth';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3003;
-const HOST = process.env.HOST || 'localhost';
-const SEAWEEDFS_FILER_URL = process.env.SEAWEEDFS_FILER_URL || 'http://localhost:8888';
 
-// Middleware
+const PORT = process.env.PORT || 3003;
+const HOST = process.env.HOST || '0.0.0.0';
+
+// 🌍 Allowed frontend URLs
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ehs-ain-abessa.vercel.app"
+];
+
+// =========================
+// 🔐 CORS CONFIG (FIXED)
+// =========================
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests from:
-    // - no origin (direct requests, same-site)
-    // - localhost and 127.0.0.1
-    // - All local network IPs (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
-    // - Mobile devices on same network
-    if (!origin || 
-        origin.includes('localhost') || 
-        origin.includes('127.0.0.1') ||
-        origin.includes('192.168.') ||
-        origin.includes('10.') ||
-        origin.match(/172\.(1[6-9]|2[0-9]|3[01])\./) ||
-        origin.includes('192.') ||
-        origin.includes('172.')) {
+    // allow tools like Postman / server-to-server
+    if (!origin) return callback(null, true);
+
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('192.168.') ||
+      origin.includes('10.') ||
+      origin.match(/172\.(1[6-9]|2[0-9]|3[01])\./);
+
+    if (isAllowed) {
       callback(null, true);
     } else {
-      console.log('[CORS] Rejected origin:', origin);
-      callback(new Error('CORS not allowed'));
+      console.log('[CORS BLOCKED]', origin);
+      callback(null, false); // ❌ IMPORTANT: DO NOT THROW ERROR
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// =========================
+// 🔧 MIDDLEWARE
+// =========================
 app.use(express.json({ limit: '50mb' }));
-app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// Note: File serving is now protected via /api/files/* routes in filesRoutes
-// This requires authentication to prevent unauthorized access to media files
-
-// Keep legacy static file serving for any existing local uploads
+// =========================
+// 📁 STATIC FILES
+// =========================
 app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
-// Serve public folder for database admin interface
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-// Presence endpoint - updates last_seen in profiles table
+// =========================
+// ❤️ PRESENCE SYSTEM
+// =========================
 app.post('/api/presence', authenticateToken, async (req: any, res: any) => {
   try {
-    // Use authenticated user's ID from token, or fallback to body
-    const userId = (req as any).user?.id || req.body.user_id;
-    
+    const userId = req.user?.id || req.body.user_id;
+
     if (!userId) {
       return res.status(400).json({ error: 'user_id is required' });
     }
-    
-    // Always use server's current UTC time to avoid client clock issues
-    const nowUtc = new Date().toISOString();
-    
-    console.log('[PRESENCE] Updating last_seen for user:', userId, 'at:', nowUtc);
-    
+
+    const now = new Date().toISOString();
+
     const result = await query(
       'UPDATE profiles SET last_seen = $1 WHERE id = $2 RETURNING id, last_seen',
-      [nowUtc, userId]
+      [now, userId]
     );
-    
+
     if (result.rows.length === 0) {
-      console.warn('[PRESENCE] No profile found for user:', userId);
       return res.status(404).json({ error: 'Profile not found' });
     }
-    
-    console.log('[PRESENCE] Update successful for user:', userId, 'last_seen:', result.rows[0].last_seen);
+
     res.json({ success: true, updated_at: result.rows[0].last_seen });
-  } catch (error: any) {
-    console.error('[PRESENCE] Error updating last_seen:', error.message);
-    res.status(500).json({ error: error.message });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Routes
+// =========================
+// 🚀 ROUTES
+// =========================
 app.use('/api/auth', authRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', crudRoutes);
 app.use('/api', filesRoutes);
 app.use('/api', databaseRoutes);
 
-// Health check
+// =========================
+// ❤️ HEALTH CHECK
+// =========================
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), seaweedfs: SEAWEEDFS_FILER_URL });
+  res.json({
+    status: 'ok',
+    time: new Date().toISOString()
+  });
 });
 
-// Start server
-app.listen(Number(PORT), String(HOST), () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
-  console.log(`SeaweedFS Filer: ${SEAWEEDFS_FILER_URL}`);
+// =========================
+// 🚀 START SERVER
+// =========================
+app.listen(Number(PORT), HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
 });
