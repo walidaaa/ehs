@@ -104,11 +104,11 @@ const Login = () => {
               <div className="space-y-2 pt-4 text-sm text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 shrink-0" />
-                  <span>{tx.heroAddress ?? "عين عبسة، سطيف، الجزائر"}</span>
+                  <span>{tx.heroAddress ?? "عين عباسة، سطيف، الجزائر"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 shrink-0" />
-                  <span>+213 36 XX XX XX</span>
+                  <span>+213 36 85 44 55</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 shrink-0" />
