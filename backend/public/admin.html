@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Admin - EHS Care</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .table-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .table-item {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        .table-item:hover {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .table-item.active {
+            background: #3b82f6;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .table-count {
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .table-item.active .table-count {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px 30px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .header-left p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .user-badge {
+            background: #334155;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-badge .role {
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 20px 30px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Table view */
+        .table-wrapper {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .table-toolbar {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #1e293b;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Data table */
+        .data-table {
+            flex: 1;
+            overflow: auto;
+            font-size: 13px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #0f172a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #cbd5e1;
+            border-bottom: 1px solid #334155;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: #0f172a;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .row-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: #10b981;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .modal {
+                width: 95%;
+            }
+
+            .table-toolbar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Tables</div>
+            </div>
+            <div class="table-list" id="tableList"></div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1 id="tableTitle">Database Admin</h1>
+                    <p id="tableInfo">Select a table to view its data</p>
+                </div>
+                <div class="header-right">
+                    <div class="user-badge">
+                        <span id="userEmail">Loading...</span>
+                        <span class="role" id="userRole"></span>
+                    </div>
+                    <button class="btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div id="emptyState" class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 10h18M3 6h18M3 14h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 10l1.5-6h15l1.5 6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>Select a table from the sidebar to view and manage data</p>
+                </div>
+
+                <div id="tableWrapper" class="table-wrapper" style="display: none;">
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterTable()">
+                        </div>
+                        <div class="buttons">
+                            <button class="btn-primary" onclick="openAddModal()">+ Add Row</button>
+                            <button class="btn-secondary" onclick="exportData()">Export CSV</button>
+                        </div>
+                    </div>
+                    <div class="data-table">
+                        <table id="dataTable">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay active" id="authModal">
+        <div class="modal">
+            <div class="modal-header">Database Access</div>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 12px;">
+                    <button class="btn-secondary" onclick="switchAuthTab('login')" id="loginTabBtn" style="flex: 1;">Login</button>
+                    <button class="btn-secondary" onclick="switchAuthTab('token')" id="tokenTabBtn" style="flex: 1;">Use Token</button>
+                </div>
+
+                <div id="loginTab">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="emailInput" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="passwordInput" placeholder="Enter password">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" onclick="login()" style="flex: 1;">Login</button>
+                    </div>
+                </div>
+
+                <div id="tokenTab" style="display: none;">
+                    <div class="form-group">
+                        <label>JWT Token</label>
+                        <input type="password" id="tokenInput" placeholder="Paste your JWT token">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" onclick="authenticateToken()" style="flex: 1;">Continue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">Edit Row</div>
+            <div id="editFormContainer"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">Add New Row</div>
+            <div id="addFormContainer"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+                <button class="btn-primary" onclick="saveNew()">Add Row</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('dbAdminToken');
+        let currentTable = null;
+        let currentData = [];
+        let currentColumns = [];
+        let editingRow = null;
+        let enumCache = {};
+
+        function switchAuthTab(tab) {
+            document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('tokenTab').style.display = tab === 'token' ? 'block' : 'none';
+            document.getElementById('loginTabBtn').className = tab === 'login' ? 'btn-primary' : 'btn-secondary';
+            document.getElementById('tokenTabBtn').className = tab === 'token' ? 'btn-primary' : 'btn-secondary';
+        }
+
+        async function login() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showToast('Please enter email and password', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                authToken = data.accessToken;
+                localStorage.setItem('dbAdminToken', authToken);
+                closeModal('authModal');
+                loadInitial();
+                showToast('Logged in successfully', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function authenticateToken() {
+            const token = document.getElementById('tokenInput').value;
+            if (!token) {
+                showToast('Please enter a token', 'error');
+                return;
+            }
+
+            authToken = token;
+            localStorage.setItem('dbAdminToken', authToken);
+            closeModal('authModal');
+            loadInitial();
+            showToast('Authenticated successfully', 'success');
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('dbAdminToken');
+                authToken = null;
+                location.reload();
+            }
+        }
+
+        async function loadInitial() {
+            try {
+                // Fetch user info
+                const userRes = await fetch(`${API_BASE}/admin/user-info`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const user = await userRes.json();
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userRole').textContent = user.role === 'super_admin' ? 'Super Admin' : user.role;
+
+                // Load tables
+                const tablesRes = await fetch(`${API_BASE}/admin/tables`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!tablesRes.ok) {
+                    throw new Error('Access denied. Super admin login required.');
+                }
+
+                const tables = await tablesRes.json();
+                const tableList = document.getElementById('tableList');
+                tableList.innerHTML = '<div class="sidebar-title">Tables</div>';
+
+                for (const table of tables) {
+                    const item = document.createElement('div');
+                    item.className = 'table-item';
+                    item.innerHTML = `
+                        <span>${table.tablename}</span>
+                        <span class="table-count">0</span>
+                    `;
+                    item.onclick = () => selectTable(table.tablename, item);
+                    tableList.appendChild(item);
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function selectTable(tableName, element) {
+            currentTable = tableName;
+            document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            document.getElementById('tableTitle').textContent = tableName;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('tableWrapper').style.display = 'flex';
+            document.getElementById('searchInput').value = '';
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/tables/${tableName}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to load table');
+
+                const data = await res.json();
+                currentColumns = data.columns;
+                currentData = data.rows;
+
+                document.getElementById('tableInfo').textContent = `${data.total} rows`;
+
+                renderTable();
+                loadEnumValues();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function renderTable() {
+            const head = document.getElementById('tableHead');
+            const body = document.getElementById('tableBody');
+            head.innerHTML = '';
+            body.innerHTML = '';
+
+            // Headers
+            for (const col of currentColumns) {
+                const th = document.createElement('th');
+                th.textContent = col.column_name;
+                head.appendChild(th);
+            }
+            const th = document.createElement('th');
+            th.textContent = 'Actions';
+            th.style.width = '120px';
+            head.appendChild(th);
+
+            // Rows
+            for (const row of currentData) {
+                const tr = document.createElement('tr');
+                for (const col of currentColumns) {
+                    const td = document.createElement('td');
+                    const value = row[col.column_name];
+                    td.textContent = value === null ? '—' : String(value).substring(0, 50);
+                    tr.appendChild(td);
+                }
+
+                const actionTd = document.createElement('td');
+                actionTd.innerHTML = `
+                    <div class="row-actions">
+                        <button class="btn-secondary" onclick="openEditModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">Edit</button>
+                        <button class="btn-danger" onclick="deleteRow('${row.id}')">Delete</button>
+                    </div>
+                `;
+                tr.appendChild(actionTd);
+                body.appendChild(tr);
+            }
+        }
+
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            for (const row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            }
+        }
+
+        async function openEditModal(row) {
+            editingRow = row;
+            const container = document.getElementById('editFormContainer');
+            container.innerHTML = '';
+
+            for (const col of currentColumns) {
+                const value = row[col.column_name] || '';
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.textContent = col.column_name;
+                group.appendChild(label);
+
+                const isEnum = col.data_type === 'app_role';
+                let input;
+
+                if (isEnum) {
+                    input = document.createElement('select');
+                    input.id = `edit_${col.column_name}`;
+                    const options = enumCache[col.data_type] || [];
+                    for (const opt of options) {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.textContent = opt;
+                        option.selected = opt === value;
+                        input.appendChild(option);
+                    }
+                } else if (col.data_type === 'text') {
+                    input = document.createElement('textarea');
+                    input.id = `edit_${col.column_name}`;
+                    input.value = value;
+                } else {
+                    input = document.createElement('input');
+                    input.id = `edit_${col.column_name}`;
+                    input.type = col.data_type === 'boolean' ? 'checkbox' : 'text';
+                    if (col.data_type === 'boolean') {
+                        input.checked = value === true;
+                    } else {
+                        input.value = value;
+                    }
+                }
+
+                input.disabled = col.column_name === 'id';
+                group.appendChild(input);
+                container.appendChild(group);
+            }
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        async function saveEdit() {
+            const updates = {};
+            for (const col of currentColumns) {
+                if (col.column_name === 'id') continue;
+
+                const input = document.getElementById(`edit_${col.column_name}`);
+                if (col.data_type === 'boolean') {
+                    updates[col.column_name] = input.checked;
+                } else {
+                    updates[col.column_name] = input.value || null;
+                }
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/tables/${currentTable}/${editingRow.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                closeModal('editModal');
+                selectTable(currentTable, document.querySelector('.table-item.active'));
+                showToast('Row updated successfully', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteRow(id) {
+            if (!confirm('Delete this row? This action cannot be undone.')) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/tables/${currentTable}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to delete');
+
+                selectTable(currentTable, document.querySelector('.table-item.active'));
+                showToast('Row deleted successfully', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function openAddModal() {
+            const container = document.getElementById('addFormContainer');
+            container.innerHTML = '';
+
+            for (const col of currentColumns) {
+                if (col.column_name === 'id') continue;
+
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.textContent = col.column_name;
+                group.appendChild(label);
+
+                const isEnum = col.data_type === 'app_role';
+                let input;
+
+                if (isEnum) {
+                    input = document.createElement('select');
+                    input.id = `add_${col.column_name}`;
+                    const options = enumCache[col.data_type] || [];
+                    for (const opt of options) {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.textContent = opt;
+                        input.appendChild(option);
+                    }
+                } else if (col.data_type === 'text') {
+                    input = document.createElement('textarea');
+                    input.id = `add_${col.column_name}`;
+                } else {
+                    input = document.createElement('input');
+                    input.id = `add_${col.column_name}`;
+                    input.type = col.data_type === 'boolean' ? 'checkbox' : 'text';
+                }
+
+                group.appendChild(input);
+                container.appendChild(group);
+            }
+
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        async function saveNew() {
+            const data = {};
+            for (const col of currentColumns) {
+                if (col.column_name === 'id') continue;
+
+                const input = document.getElementById(`add_${col.column_name}`);
+                if (col.data_type === 'boolean') {
+                    data[col.column_name] = input.checked;
+                } else {
+                    data[col.column_name] = input.value || null;
+                }
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/tables/${currentTable}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error);
+
+                closeModal('addModal');
+                selectTable(currentTable, document.querySelector('.table-item.active'));
+                showToast('Row added successfully', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function loadEnumValues() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/enums/app_role`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    enumCache['app_role'] = data.values;
+                }
+            } catch (error) {
+                console.error('[v0] Failed to load enum values:', error);
+            }
+        }
+
+        function exportData() {
+            if (!currentData || currentData.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+
+            const headers = currentColumns.map(c => c.column_name);
+            const rows = currentData.map(row => 
+                headers.map(h => {
+                    const val = row[h];
+                    return val === null ? '' : JSON.stringify(val);
+                }).join(',')
+            );
+
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentTable}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showToast('Data exported successfully', 'success');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (authToken) {
+                document.getElementById('authModal').classList.remove('active');
+                loadInitial();
+            }
+        });
+    </script>
+</body>
+</html>

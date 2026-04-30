@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Material You — Light ── */
+    --background: 240 18% 97%;
+    --foreground: 240 10% 10%;
+
+    --card: 240 18% 98%;
+    --card-foreground: 240 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    --primary: 212 100% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 20% 90%;
+    --secondary-foreground: 240 10% 15%;
+
+    --muted: 240 10% 92%;
+    --muted-foreground: 240 5% 40%;
+
+    --accent: 221.25 40% 92.16%;
+    --accent-foreground: 225.48 60.78% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 88%;
+    --input: 240 10% 88%;
+    --ring: 212 100% 45%;
+
+    --radius: 1.75rem;
+
+    /* Neumorphism shadows (kept for existing components) */
+    --neu-shadow-dark: 240 10% 70%;
+    --neu-shadow-light: 0 0% 100%;
+    --neu-shadow: 6px 6px 12px hsl(var(--neu-shadow-dark) / 0.4), -6px -6px 12px hsl(var(--neu-shadow-light));
+    --neu-shadow-sm: 3px 3px 6px hsl(var(--neu-shadow-dark) / 0.4), -3px -3px 6px hsl(var(--neu-shadow-light));
+    --neu-shadow-lg: 10px 10px 20px hsl(var(--neu-shadow-dark) / 0.4), -10px -10px 20px hsl(var(--neu-shadow-light));
+    --neu-inset: inset 3px 3px 6px hsl(var(--neu-shadow-dark) / 0.4), inset -3px -3px 6px hsl(var(--neu-shadow-light));
+
+    /* Glassmorphism */
+    --glass-bg: hsl(240 18% 98% / 0.85);
+    --glass-border: hsl(240 10% 88% / 0.8);
+    --glass-blur: 12px;
+
+    /* Gradients — Material You primary + accent brand pop */
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 45%), hsl(212 100% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(25 95% 60%), hsl(320 70% 55%), hsl(265 70% 55%));
+    --gradient-success: linear-gradient(135deg, hsl(160 60% 45%), hsl(180 50% 40%));
+    --gradient-warning: linear-gradient(135deg, hsl(35 90% 60%), hsl(20 80% 55%));
+    --gradient-destructive: linear-gradient(135deg, hsl(0 72% 55%), hsl(0 60% 45%));
+
+    --sidebar-background: 240 18% 97%;
+    --sidebar-foreground: 240 10% 15%;
+    --sidebar-primary: 212 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 20% 92%;
+    --sidebar-accent-foreground: 240 10% 15%;
+    --sidebar-border: 240 10% 88%;
+    --sidebar-ring: 212 100% 45%;
+  }
+
+  .dark {
+    /* ── Material You — Dark ── */
+    --background: 240 10% 4%;
+    --foreground: 240 15% 90%;
+
+    --card: 240 10% 7%;
+    --card-foreground: 240 15% 90%;
+
+    --popover: 240 10% 8%;
+    --popover-foreground: 240 15% 90%;
+
+    --primary: 212 100% 80%;
+    --primary-foreground: 240 10% 5%;
+
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 240 10% 90%;
+
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 10% 60%;
+
+    --accent: 215 54.55% 17.25%;
+    --accent-foreground: 224.05 86.81% 82.16%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 212 100% 80%;
+
+    /* Neumorphism shadows - dark */
+    --neu-shadow-dark: 240 20% 2%;
+    --neu-shadow-light: 240 10% 14%;
+    --neu-shadow: 6px 6px 12px hsl(var(--neu-shadow-dark)), -6px -6px 12px hsl(var(--neu-shadow-light));
+    --neu-shadow-sm: 3px 3px 6px hsl(var(--neu-shadow-dark)), -3px -3px 6px hsl(var(--neu-shadow-light));
+    --neu-shadow-lg: 10px 10px 20px hsl(var(--neu-shadow-dark)), -10px -10px 20px hsl(var(--neu-shadow-light));
+    --neu-inset: inset 3px 3px 6px hsl(var(--neu-shadow-dark)), inset -3px -3px 6px hsl(var(--neu-shadow-light));
+
+    /* Glassmorphism - dark */
+    --glass-bg: hsl(240 10% 8% / 0.85);
+    --glass-border: hsl(240 10% 18% / 0.8);
+    --glass-blur: 12px;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 70%), hsl(212 100% 85%));
+    --gradient-accent: linear-gradient(135deg, hsl(25 95% 60%), hsl(320 70% 55%), hsl(265 70% 55%));
+    --gradient-success: linear-gradient(135deg, hsl(160 55% 40%), hsl(180 45% 35%));
+    --gradient-warning: linear-gradient(135deg, hsl(35 85% 55%), hsl(20 75% 50%));
+    --gradient-destructive: linear-gradient(135deg, hsl(0 65% 50%), hsl(0 55% 40%));
+
+    --sidebar-background: 240 10% 5%;
+    --sidebar-foreground: 240 15% 88%;
+    --sidebar-primary: 212 100% 80%;
+    --sidebar-primary-foreground: 240 10% 5%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 240 15% 88%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 212 100% 80%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', 'Cairo', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Fix select/option dark mode */
+  select {
+    color: hsl(var(--foreground));
+    background-color: transparent;
+  }
+
+  select option {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+  }
+
+  /* Fix all inputs in dark mode */
+  input, textarea {
+    color: hsl(var(--foreground));
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  .m3-button {
+    height: 56px;
+    padding: 0 24px;
+    border-radius: 28px;
+    font-weight: 500;
+  }
+
+  .m3-container {
+    padding: 1.5rem;
+    border-radius: 2rem;
+    background-color: hsl(var(--secondary));
+  }
+}
+
+@layer utilities {
+  .neu-flat {
+    box-shadow: var(--neu-shadow);
+  }
+  .neu-flat-sm {
+    box-shadow: var(--neu-shadow-sm);
+  }
+  .neu-flat-lg {
+    box-shadow: var(--neu-shadow-lg);
+  }
+  .neu-pressed {
+    box-shadow: var(--neu-inset);
+  }
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+  .gradient-destructive {
+    background: var(--gradient-destructive);
+  }
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
