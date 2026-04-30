@@ -94,7 +94,7 @@ const Login = () => {
               className="space-y-4"
             >
               <h2 className="text-3xl lg:text-4xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                {tx.heroTitle ?? "المؤسسة الاستشفائية المتخصصة عين عبسة"}
+                {tx.heroTitle ?? "المؤسسة الاستشفائية المتخصصة عين عباسة"}
               </h2>
               <p className="text-sm lg:text-base text-white max-w-lg leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
                 {tx.heroSubtitle ??
