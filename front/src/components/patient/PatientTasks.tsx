@@ -182,19 +182,7 @@ const PatientTasks = ({ patientId, parentId, doctorId }: Props) => {
               )}
 
               <div className="flex gap-2 mr-10">
-                {isDoctor && (task.status === "جديدة" || task.status === "منفذة") && (
-                  <button
-                    onClick={() => {
-                      setTaskEditItem(task);
-                      setTaskForm({ title: task.title, description: task.description || "", type: task.type || "تمرين", due_date: task.due_date || "" });
-                      setTaskOpen(true);
-                    }}
-                    className="text-xs font-cairo bg-primary/10 text-primary rounded-xl px-3 py-1.5 hover:scale-105 transition-transform flex items-center gap-1"
-                  >
-                    <Edit className="h-3 w-3" />{t.edit}
-                  </button>
-                )}
-                {isParent && task.status !== "مقيّمة" && (
+                {(isDoctor || isParent) && (
                   <button
                     onClick={() => {
                       setTaskEditItem(task);
