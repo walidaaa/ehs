@@ -390,6 +390,8 @@ export const fr = {
   viewDepartment: "Détails du service",
   viewDoctor: "Détails du médecin",
   viewParent: "Détails du parent",
+  viewTask: "Détails de la tâche",
+  taskDetails: "Détails de la tâche",
   editDepartment: "Modifier le service",
   editDoctor: "Modifier le médecin",
   patientCount: "Nombre de patients",

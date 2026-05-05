@@ -386,6 +386,8 @@ export const ar = {
   viewDepartment: "تفاصيل القسم",
   viewDoctor: "تفاصيل الطبيب",
   viewParent: "تفاصيل ولي الأمر",
+  viewTask: "تفاصيل المهمة",
+  taskDetails: "تفاصيل المهمة",
   editDepartment: "تعديل القسم",
   editDoctor: "تعديل الطبيب",
   patientCount: "عدد المرضى",

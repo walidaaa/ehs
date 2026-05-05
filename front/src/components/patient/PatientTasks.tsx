@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Plus, Send, CheckCircle, Clock, AlertCircle, MessageSquare, Star, Edit } from "lucide-react";
+import { Plus, Send, CheckCircle, Clock, AlertCircle, MessageSquare, Star, Edit, Stethoscope, Heart, Eye } from "lucide-react";
 import { useTableQuery, useInsertMutation, useUpdateMutation } from "@/hooks/useSupabaseQuery";
 import { CrudDialog } from "@/components/shared/CrudDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/usePermissions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
-import { taskTypeKeys, taskStatusMap, translateValue } from "@/lib/translationMaps";
+import { taskTypeKeys, taskStatusMap, specialtyMap, translateValue } from "@/lib/translationMaps";
 
 const evaluationOptions = [
   { value: "تحسن", labelKey: "improvement", color: "gradient-success" },
@@ -33,6 +33,45 @@ const PatientTasks = ({ patientId, parentId, doctorId }: Props) => {
   const tasks = isDoctorRole ? allTasks.filter((t: any) => t.doctor_id === user?.id) : allTasks;
   const { data: reports = [] } = useTableQuery("task_reports");
   const { data: parents = [] } = useTableQuery("parents");
+  const { data: profiles = [] } = useTableQuery("profiles");
+
+  const [viewProfileOpen, setViewProfileOpen] = useState(false);
+  const [viewProfileData, setViewProfileData] = useState<{ type: "doctor" | "parent" | "task"; data: any } | null>(null);
+
+  const openViewDoctor = (taskDoctorId?: string) => {
+    const docId = taskDoctorId || doctorId;
+    if (!docId) return;
+    const doc = profiles.find((p: any) => p.id === docId);
+    if (doc) {
+      setViewProfileData({ type: "doctor", data: doc });
+      setViewProfileOpen(true);
+    }
+  };
+
+  const openViewTask = (task: any) => {
+    setViewProfileData({ type: "task", data: task });
+    setViewProfileOpen(true);
+  };
+
+  // Normalize a DB date value (which may be an ISO timestamp like "2025-01-15T00:00:00+00:00")
+  // into the YYYY-MM-DD format that <input type="date"> requires, otherwise the input shows empty
+  // and the existing due_date is lost when the user submits the edit form.
+  const toDateInputValue = (value: any): string => {
+    if (!value) return "";
+    if (typeof value === "string") {
+      // already in YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      // ISO-ish timestamp -> take the date portion
+      const idx = value.indexOf("T");
+      if (idx > 0) return value.slice(0, 10);
+    }
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "";
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
 
   const insertTask = useInsertMutation("patient_tasks", { success: t.addedSuccess, error: t.errorPrefix });
   const updateTask = useUpdateMutation("patient_tasks", { success: t.updatedSuccess, error: t.errorPrefix });
@@ -181,17 +220,42 @@ const PatientTasks = ({ patientId, parentId, doctorId }: Props) => {
                 </div>
               )}
 
-              <div className="flex gap-2 mr-10">
+              <div className="flex flex-wrap items-center gap-2 mr-10">
                 {(isDoctor || isParent) && (
                   <button
                     onClick={() => {
                       setTaskEditItem(task);
-                      setTaskForm({ title: task.title, description: task.description || "", type: task.type || "تمرين", due_date: task.due_date || "" });
+                      setTaskForm({
+                        title: task.title,
+                        description: task.description || "",
+                        type: task.type || "تمرين",
+                        due_date: toDateInputValue(task.due_date),
+                      });
                       setTaskOpen(true);
                     }}
-                    className="text-xs font-cairo bg-primary/10 text-primary rounded-xl px-3 py-1.5 hover:scale-105 transition-transform flex items-center gap-1"
+                    title={t.edit}
+                    aria-label={t.edit}
+                    className="h-9 w-9 rounded-full neu-flat-sm bg-background text-primary hover:scale-110 transition-transform flex items-center justify-center"
                   >
-                    <Edit className="h-3 w-3" />{t.edit}
+                    <Edit className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => openViewTask(task)}
+                  title={t.viewTask}
+                  aria-label={t.viewTask}
+                  className="h-9 w-9 rounded-full neu-flat-sm bg-background text-primary hover:scale-110 transition-transform flex items-center justify-center"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                {isParent && (task.doctor_id || doctorId) && (
+                  <button
+                    onClick={() => openViewDoctor(task.doctor_id)}
+                    title={t.viewDoctor}
+                    aria-label={t.viewDoctor}
+                    className="h-9 w-9 rounded-full neu-flat-sm bg-background text-primary hover:scale-110 transition-transform flex items-center justify-center"
+                  >
+                    <Stethoscope className="h-4 w-4" />
                   </button>
                 )}
                 {isParent && task.status !== "مقيّمة" && (
@@ -273,6 +337,104 @@ const PatientTasks = ({ patientId, parentId, doctorId }: Props) => {
             {t.sendReport}
           </button>
         </form>
+      </CrudDialog>
+
+      <CrudDialog
+        open={viewProfileOpen}
+        onOpenChange={(o) => { setViewProfileOpen(o); if (!o) setViewProfileData(null); }}
+        title={
+          viewProfileData?.type === "doctor"
+            ? t.viewDoctor
+            : viewProfileData?.type === "task"
+              ? t.viewTask
+              : t.viewParent
+        }
+      >
+        {viewProfileData && viewProfileData.type === "task" && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30">
+              <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-primary-foreground ${viewProfileData.data.type === "دواء" ? "gradient-warning" : viewProfileData.data.type === "سلوك" ? "gradient-accent" : "gradient-primary"}`}>
+                <Send className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground font-cairo">{t.taskTitle}</p>
+                <p className="text-sm font-semibold font-cairo">{viewProfileData.data.title || "—"}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 p-3 rounded-2xl bg-muted/20">
+              <div>
+                <p className="text-xs text-muted-foreground font-cairo">{t.taskType}</p>
+                <p className="text-sm font-medium font-cairo">{getTaskTypeLabel(viewProfileData.data.type)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-cairo">{t.statusLabel}</p>
+                <p className="text-sm font-medium font-cairo">{translateValue(viewProfileData.data.status, taskStatusMap, t)}</p>
+              </div>
+              {viewProfileData.data.description && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-cairo">{t.taskDescription}</p>
+                  <p className="text-sm font-medium font-cairo whitespace-pre-wrap">{viewProfileData.data.description}</p>
+                </div>
+              )}
+              {viewProfileData.data.due_date && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-cairo">{t.deadline}</p>
+                  <p className="text-sm font-medium font-cairo">{toDateInputValue(viewProfileData.data.due_date)}</p>
+                </div>
+              )}
+              {viewProfileData.data.created_at && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-cairo">{t.createdAt || t.deadline}</p>
+                  <p className="text-sm font-medium font-cairo">{new Date(viewProfileData.data.created_at).toLocaleDateString(locale)}</p>
+                </div>
+              )}
+              {viewProfileData.data.evaluation && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-cairo">{t.doctorEvaluation}</p>
+                  <p className="text-sm font-medium font-cairo">{viewProfileData.data.evaluation}</p>
+                  {viewProfileData.data.evaluation_notes && (
+                    <p className="text-xs text-muted-foreground font-cairo mt-1">{viewProfileData.data.evaluation_notes}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {viewProfileData && viewProfileData.type !== "task" && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30">
+              <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-primary-foreground ${viewProfileData.type === "doctor" ? "gradient-primary" : "gradient-success"}`}>
+                {viewProfileData.type === "doctor" ? <Stethoscope className="h-5 w-5" /> : <Heart className="h-5 w-5" />}
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-cairo">{t.fullName}</p>
+                <p className="text-sm font-semibold font-cairo">{viewProfileData.data.full_name || "—"}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 p-3 rounded-2xl bg-muted/20">
+              <div>
+                <p className="text-xs text-muted-foreground font-cairo">{t.phone}</p>
+                <p className="text-sm font-medium font-cairo">{viewProfileData.data.phone || "—"}</p>
+              </div>
+              {viewProfileData.type === "doctor" && (
+                <>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-cairo">{t.specialty}</p>
+                    <p className="text-sm font-medium font-cairo">
+                      {viewProfileData.data.specialty ? translateValue(viewProfileData.data.specialty, specialtyMap, t) : "—"}
+                    </p>
+                  </div>
+                  {viewProfileData.data.email && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-cairo">{t.email}</p>
+                      <p className="text-sm font-medium font-cairo">{viewProfileData.data.email}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </CrudDialog>
 
       <CrudDialog open={evalOpen} onOpenChange={setEvalOpen} title={t.evaluatePatient}>
