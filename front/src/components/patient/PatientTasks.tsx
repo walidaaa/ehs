@@ -196,6 +196,18 @@ const PatientTasks = ({ patientId, parentId, doctorId }: Props) => {
                 )}
                 {isParent && task.status !== "مقيّمة" && (
                   <button
+                    onClick={() => {
+                      setTaskEditItem(task);
+                      setTaskForm({ title: task.title, description: task.description || "", type: task.type || "تمرين", due_date: task.due_date || "" });
+                      setTaskOpen(true);
+                    }}
+                    className="text-xs font-cairo bg-primary/10 text-primary rounded-xl px-3 py-1.5 hover:scale-105 transition-transform flex items-center gap-1"
+                  >
+                    <Edit className="h-3 w-3" />{t.edit}
+                  </button>
+                )}
+                {isParent && task.status !== "مقيّمة" && (
+                  <button
                     onClick={() => { setReportTaskId(task.id); setReportText(""); setReportOpen(true); }}
                     className="text-xs font-cairo gradient-success text-primary-foreground rounded-xl px-3 py-1.5 hover:scale-105 transition-transform flex items-center gap-1"
                   >
